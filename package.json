@@ -28,8 +28,8 @@
     ]
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^19.0.0",
-    "@rollup/plugin-node-resolve": "^13.0.0",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/jest": "^26.0.23",
     "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -44,10 +44,10 @@
     "react": "^18.1.0",
     "react-admin": "^4.1.3",
     "react-dom": "^18.1.0",
-    "rollup": "^2.36.1",
+    "rollup": "^4.10.0",
     "rollup-plugin-delete": "^2.0.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-typescript2": "^0.31.1",
+    "rollup-plugin-typescript2": "^0.36.0",
     "ts-jest": "^26.4.4",
     "tslib": "^2.2.0",
     "typescript": "<4.5.0"
