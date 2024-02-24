@@ -247,16 +247,16 @@ export class AdminQueries {
     Reference:
     https://docs.amplify.aws/react/build-a-backend/auth/admin-actions/#example
   */
-  static async get(path: string, params: Record<string, unknown>) {
+  static async get(path: string, queryParams: { [key: string]: any }) {
     let apiName = "AdminQueries";
     const options = {
-      queryStringParameters: params,
       headers: {
         "Content-Type": "application/json",
         Authorization: `${(await fetchAuthSession())
           .tokens?.accessToken
           }`,
       },
+      queryParams,
     };
 
     return await get({ apiName, path, options });
