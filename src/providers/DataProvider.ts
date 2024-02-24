@@ -1,4 +1,5 @@
-import { API, GraphQLResult, GRAPHQL_AUTH_MODE } from "@aws-amplify/api";
+import { GraphQLResult, generateClient, Client } from 'aws-amplify/api';
+import { GraphQLAuthMode } from "@aws-amplify/core/internals/utils";
 import {
   CreateParams,
   CreateResult,
@@ -30,28 +31,31 @@ export interface Operations {
 }
 
 export interface DataProviderOptions {
-  authMode?: GRAPHQL_AUTH_MODE;
+  authMode?: GraphQLAuthMode;
   storageBucket?: string;
   storageRegion?: string;
   enableAdminQueries?: boolean;
 }
 
 const defaultOptions = {
-  authMode: GRAPHQL_AUTH_MODE.AMAZON_COGNITO_USER_POOLS,
+  authMode: "userPool" as GraphQLAuthMode,
   enableAdminQueries: false,
 };
 
 export class DataProvider {
+  public client: Client;
+
   public queries: Record<string, string>;
   public mutations: Record<string, string>;
 
-  public authMode: GRAPHQL_AUTH_MODE;
+  public authMode: GraphQLAuthMode;
   public enableAdminQueries: boolean;
 
   static storageBucket?: string;
   static storageRegion?: string;
 
   public constructor(operations: Operations, options?: DataProviderOptions) {
+    this.client = generateClient();
     this.queries = operations.queries;
     this.mutations = operations.mutations;
 
@@ -350,14 +354,12 @@ export class DataProvider {
   public getQueryName(operation: string, resource: string): string {
     const pluralOperations = ["list"];
     if (pluralOperations.includes(operation)) {
-      return `${operation}${
-        resource.charAt(0).toUpperCase() + resource.slice(1)
-      }`;
+      return `${operation}${resource.charAt(0).toUpperCase() + resource.slice(1)
+        }`;
     }
     // else singular operations ["create", "delete", "get", "update"]
-    return `${operation}${
-      resource.charAt(0).toUpperCase() + resource.slice(1, -1)
-    }`;
+    return `${operation}${resource.charAt(0).toUpperCase() + resource.slice(1, -1)
+      }`;
   }
 
   public getQueryNameMany(
@@ -367,20 +369,19 @@ export class DataProvider {
   ): string {
     const queryName = this.getQueryName(operation, resource);
 
-    return `${queryName}By${
-      target.charAt(0).toUpperCase() + target.slice(1, -2)
-    }Id`;
+    return `${queryName}By${target.charAt(0).toUpperCase() + target.slice(1, -2)
+      }Id`;
   }
 
   public async graphql(
     query: string,
     variables: Record<string, unknown>
   ): Promise<any> {
-    const queryResult = <GraphQLResult>await API.graphql({
+    const queryResult = await this.client.graphql({
       query,
       variables,
       authMode: this.authMode,
-    });
+    }) as GraphQLResult;
 
     if (queryResult.errors || !queryResult.data) {
       throw new Error("Data provider error");

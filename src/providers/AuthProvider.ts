@@ -1,5 +1,4 @@
-import { Auth, CognitoUser } from "@aws-amplify/auth";
-import { ClientMetaData } from "@aws-amplify/auth/lib-esm/types";
+import { signIn, SignInInput, SignInOutput, signOut, fetchAuthSession } from "aws-amplify/auth";
 
 export interface AuthProviderOptions {
   authGroups?: string[];
@@ -16,38 +15,28 @@ export class AuthProvider {
     this.authGroups = options?.authGroups || defaultOptions.authGroups;
   }
 
-  public login = ({
-    username,
-    password,
-    clientMetadata,
-  }: Record<string, unknown>): Promise<CognitoUser | unknown> => {
-    return Auth.signIn(
-      <string>username,
-      <string>password,
-      <ClientMetaData>clientMetadata
-    );
+  public login = (input: SignInInput): Promise<SignInOutput> => {
+    return signIn(input);
   };
 
-  public logout = (): Promise<any> => {
-    return Auth.signOut();
+  public logout = (): Promise<void> => {
+    return signOut();
   };
 
   public checkAuth = async (): Promise<void> => {
-    const session = await Auth.currentSession();
+    const session = await fetchAuthSession();
 
     if (this.authGroups.length === 0) {
       return;
     }
 
-    const userGroups = session.getAccessToken().decodePayload()[
-      "cognito:groups"
-    ];
+    const userGroups = session.tokens?.accessToken.payload["cognito:groups"];
 
     if (!userGroups) {
       throw new Error("Unauthorized");
     }
 
-    for (const group of userGroups) {
+    for (const group of userGroups as string[]) {
       if (this.authGroups.includes(group)) {
         return;
       }
@@ -61,10 +50,9 @@ export class AuthProvider {
   };
 
   public getPermissions = async (): Promise<string[]> => {
-    const session = await Auth.currentSession();
+    const session = await fetchAuthSession();
+    const userGroups = session.tokens?.accessToken.payload["cognito:groups"];
 
-    const groups = session.getAccessToken().decodePayload()["cognito:groups"];
-
-    return groups ? Promise.resolve(groups) : Promise.reject();
+    return userGroups ? Promise.resolve(userGroups as string[]) : Promise.reject();
   };
 }

@@ -1,5 +1,5 @@
-import { API } from "@aws-amplify/api";
-import { Auth } from "@aws-amplify/auth";
+import { fetchAuthSession } from "aws-amplify/auth";
+import { get } from 'aws-amplify/api'
 import {
   GetListParams,
   GetListResult,
@@ -243,17 +243,22 @@ export class AdminQueries {
     }, {});
   }
 
+  /*
+    Reference:
+    https://docs.amplify.aws/react/build-a-backend/auth/admin-actions/#example
+  */
   static async get(path: string, params: Record<string, unknown>) {
-    const init = {
+    let apiName = "AdminQueries";
+    const options = {
       queryStringParameters: params,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `${(await Auth.currentSession())
-          .getAccessToken()
-          .getJwtToken()}`,
+        Authorization: `${(await fetchAuthSession())
+          .tokens?.accessToken
+          }`,
       },
     };
 
-    return await API.get("AdminQueries", path, init);
+    return await get({ apiName, path, options });
   }
 }
